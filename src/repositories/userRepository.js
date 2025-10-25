@@ -1,40 +1,30 @@
-class UserRepository {
-    constructor() {
-        this.users = [];
-        this.currentId = 1;
+const User = require('../models/userModels');
+
+class userRepository {
+    async addUser(userData) {
+        return await User.create(userData);
     }
 
-    createUser(user) {
-        user.id = this.currentId++;
-        this.users.push(user);
-        return user;
+    async findAllUsers() {
+        return await User.findAll();
     }
 
-    getUserById(id) {
-        return this.users.find(user => user.id === id);
+    async findUserById(id) {
+        return await User.findByPk(id);
     }
 
-    updateUser(id, updatedUser) {
-        const index = this.users.findIndex(user => user.id === id);
-        if (index !== -1) {
-            updatedUser.id = id;
-            this.users[index] = updatedUser;
-            return updatedUser;
-        }
-        return null;
+    async updateUser(id, userData) {
+        const user = await User.findByPk(id);
+        if (!user) return null;
+        return await user.update(userData);
     }
 
-    deleteUser(id) {
-        const index = this.users.findIndex(user => user.id === id);
-        if (index !== -1) {
-            return this.users.splice(index, 1)[0];
-        }
-        return null;
-    }
-
-    getAllUsers() {
-        return this.users;
+    async deleteUser(id) {
+        const user = await User.findByPk(id);
+        if (!user) return null;
+        await user.destroy();
+        return true;
     }
 }
 
-module.exports = new UserRepository();
+module.exports = userRepository;

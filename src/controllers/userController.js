@@ -1,61 +1,94 @@
-class UserController {
-    constructor(userService) {
-        this.userService = userService;
-    }
+const UserService = require('../services/userServices');
+const UserRepository = require('../repositories/userRepository');
 
-    async createUser(req, res) {
+const userRepository = new UserRepository();
+const userService = new UserService(userRepository);
+
+const userController = {
+    // Crear usuario
+    async createUser(req, res, next) {
         try {
-            const user = await this.userService.createUser(req.body);
-            res.status(201).json(user);
+            const userData = req.body;
+            console.log('Creando usuario:', userData);
+            const user = await userService.createUser(userData);
+            res.status(201).json({
+                message: 'Usuario creado exitosamente',
+                data: user
+            });
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            next(error);
         }
-    }
+    },
 
-    async getUserById(req, res) {
+    // Obtener todos los usuarios
+    async getAllUsers(req, res, next) {
         try {
-            const user = await this.userService.getUserById(req.params.id);
+            const users = await userService.getAllUsers();
+            res.json({
+                message: 'Usuarios encontrados',
+                data: users
+            });
+        } catch (error) {
+            next(error);
+        }
+    },
+
+    // Obtener usuario por ID
+    async getUserById(req, res, next) {
+        try {
+            const { id } = req.params;
+            const user = await userService.getUserById(id);
             if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({
+                    message: 'Usuario no encontrado'
+                });
             }
-            res.status(200).json(user);
+            res.json({
+                message: 'Usuario encontrado',
+                data: user
+            });
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            next(error);
         }
-    }
+    },
 
-    async updateUser(req, res) {
+    // Actualizar usuario
+    async updateUser(req, res, next) {
         try {
-            const user = await this.userService.updateUser(req.params.id, req.body);
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+            const { id } = req.params;
+            const userData = req.body;
+            const updatedUser = await userService.updateUser(id, userData);
+            if (!updatedUser) {
+                return res.status(404).json({
+                    message: 'Usuario no encontrado'
+                });
             }
-            res.status(200).json(user);
+            res.json({
+                message: 'Usuario actualizado exitosamente',
+                data: updatedUser
+            });
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            next(error);
         }
-    }
+    },
 
-    async deleteUser(req, res) {
+    // Eliminar usuario
+    async deleteUser(req, res, next) {
         try {
-            const result = await this.userService.deleteUser(req.params.id);
+            const { id } = req.params;
+            const result = await userService.deleteUser(id);
             if (!result) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({
+                    message: 'Usuario no encontrado'
+                });
             }
-            res.status(204).send();
+            res.json({
+                message: 'Usuario eliminado exitosamente'
+            });
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            next(error);
         }
     }
+};
 
-    async getAllUsers(req, res) {
-        try {
-            const users = await this.userService.getAllUsers();
-            res.status(200).json(users);
-        } catch (error) {
-            res.status(500).json({ message: error.message });
-        }
-    }
-}
-
-module.exports = UserController;
+module.exports = userController;
